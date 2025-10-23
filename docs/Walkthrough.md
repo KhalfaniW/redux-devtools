@@ -37,8 +37,8 @@ import React from 'react';
 import { createDevTools } from '@redux-devtools/core';
 
 // Monitors are separate packages, and you can make a custom one
-import LogMonitor from '@redux-devtools/log-monitor';
-import DockMonitor from '@redux-devtools/dock-monitor';
+import { LogMonitor } from '@redux-devtools/log-monitor';
+import { DockMonitor } from '@redux-devtools/dock-monitor';
 
 // createDevTools takes a monitor and produces a DevTools component
 const DevTools = createDevTools(
@@ -67,6 +67,9 @@ const DevTools = createDevTools(<LogMonitor theme="solarized" />);
 
 #### Use `DevTools.instrument()` Store Enhancer
 
+
+
+
 The `DevTools` component you created with `createDevTools()` has a special static method called `instrument()`. It returns a [store enhancer](http://redux.js.org/docs/Glossary.html#store-enhancer) that you need to use in development.
 
 A store enhancer is a function that enhances the behavior of `createStore()`. You can pass store enhancer as the last optional argument to `createStore()`. You probably already used another store enhancer—[`applyMiddleware()`](http://redux.js.org/docs/api/applyMiddleware.html). Unlike `applyMiddleware()`, you will need to be careful to only use `DevTools.instrument()` in development environment, and never in production.
@@ -77,7 +80,30 @@ You can add additional options to it: `DevTools.instrument({ maxAge: 50, shouldC
 
 It’s important that you should add `DevTools.instrument()` _after_ `applyMiddleware` in your `compose()` function arguments. This is because `applyMiddleware` is potentially asynchronous, but `DevTools.instrument()` expects all actions to be plain objects rather than actions interpreted by asynchronous middleware such as [redux-promise](https://github.com/acdlite/redux-promise) or [redux-thunk](https://github.com/gaearon/redux-thunk). So make sure `applyMiddleware()` goes first in the `compose()` call, and `DevTools.instrument()` goes after it.
 
-##### `store/configureStore.js`
+
+##### `store/configureStore.js` redux-toolkit
+
+With redux-toolkit you need to add it as an enhancer and disable the original devtools
+
+```js
+import { compose } from "redux";
+import { configureStore, Tuple } from "@reduxjs/toolkit";
+import counterReducer from "./counterSlice";
+import DevTools from "../DevTools";
+
+export const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+  },
+  devTools: false,
+  enhancers: (getDefaultEnhancers) =>
+    getDefaultEnhancers().concat(DevTools.instrument()),
+});
+
+```
+
+
+##### `store/configureStore.js` custom
 
 ```js
 import { createStore, applyMiddleware, compose } from 'redux';
